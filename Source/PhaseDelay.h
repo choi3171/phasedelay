@@ -66,7 +66,7 @@ public:
 
     void setConfig(bool svfMode, int iterations) {
         useSVF = svfMode;
-        currentIterations = std::max(1, std::min(MAX_ITERATIONS, iterations));
+        currentIterations = std::clamp(iterations, 0, MAX_ITERATIONS);
     }
 
     void updateCoefficients(double freq, double q, int numChannels) {
@@ -81,6 +81,9 @@ public:
     }
     
     void processBlock(float* const* channelData, int numChannels, int numSamples, float mix) {
+        if (currentIterations == 0)
+            return;
+
         if (useSVF) {
             processInternal(channelData, numChannels, numSamples, mix, svfs);
         } else {
