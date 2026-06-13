@@ -14,6 +14,7 @@ FetchContent_MakeAvailable(juce)
 
 set(PHASEDELAY_SOURCES
     Source/PhaseDelay.h
+    Source/PhaseDelay.cpp
     Source/Biquad.h
     Source/SVF.h
     Source/PluginProcessor.cpp
