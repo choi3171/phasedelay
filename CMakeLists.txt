@@ -12,16 +12,20 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(juce)
 
-set(PHASEDELAY_SOURCES
-    Source/PhaseDelay.h
+set(PHASEDELAY_DSP_SOURCES
     Source/PhaseDelay.cpp
+    Source/PhaseDelay.h
     Source/Biquad.h
     Source/SVF.h
-    Source/PluginProcessor.cpp
-    Source/PluginProcessor.h
 )
 
-set(PHASEDELAY_COMPILE_DEFINITIONS
+set(PHASEDELAY_PLUGIN_SOURCES
+    Source/PluginProcessor.cpp
+    Source/PluginProcessor.h
+    ${PHASEDELAY_DSP_SOURCES}
+)
+
+set(PHASEDELAY_COMMON_DEFINITIONS
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
@@ -41,12 +45,17 @@ function(add_phasedelay_plugin target_name product_name plugin_code gui_include)
 
     target_sources(${target_name}
         PRIVATE
-            ${PHASEDELAY_SOURCES}
+            ${PHASEDELAY_PLUGIN_SOURCES}
+    )
+
+    target_include_directories(${target_name}
+        PRIVATE
+            Source
     )
 
     target_compile_definitions(${target_name}
         PRIVATE
-            ${PHASEDELAY_COMPILE_DEFINITIONS}
+            ${PHASEDELAY_COMMON_DEFINITIONS}
             GUI_INCLUDE=${gui_include}
     )
 
@@ -54,21 +63,57 @@ function(add_phasedelay_plugin target_name product_name plugin_code gui_include)
         PRIVATE
             juce::juce_audio_plugin_client
             juce::juce_audio_processors
+            juce::juce_audio_basics
+            juce::juce_dsp
             juce::juce_gui_basics
             juce::juce_gui_extra
     )
 endfunction()
 
-add_phasedelay_plugin(
-    PhaseDelay
-    "PhaseDelay"
-    "PdGu"
-    1
-)
+if(PHASEDELAY_BUILD_PLUGIN)
+    add_phasedelay_plugin(
+        PhaseDelay
+        "PhaseDelay"
+        "PdGu"
+        1
+    )
 
-add_phasedelay_plugin(
-    PhaseDelay_NoGUI
-    "PhaseDelay NoGUI"
-    "PdNg"
-    0
-)
+    add_phasedelay_plugin(
+        PhaseDelay_NoGUI
+        "PhaseDelay NoGUI"
+        "PdNg"
+        0
+    )
+endif()
+
+if(BENCH)
+    juce_add_console_app(PhaseDelayBench
+        PRODUCT_NAME "PhaseDelayBench"
+    )
+
+    juce_generate_juce_header(PhaseDelayBench)
+
+    target_sources(PhaseDelayBench
+        PRIVATE
+            Bench/Bench.cpp
+            ${PHASEDELAY_DSP_SOURCES}
+    )
+
+    target_include_directories(PhaseDelayBench
+        PRIVATE
+            Source
+    )
+
+    target_compile_definitions(PhaseDelayBench
+        PRIVATE
+            ${PHASEDELAY_COMMON_DEFINITIONS}
+            PHASEDELAY_BENCH=1
+        )
+
+    target_link_libraries(PhaseDelayBench
+        PRIVATE
+            juce::juce_core
+            juce::juce_audio_basics
+            juce::juce_dsp
+    )
+endif()
