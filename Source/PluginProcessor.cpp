@@ -7,6 +7,9 @@
 */
 
 #include "PluginProcessor.h"
+#ifndef GUI_INCLUDE
+#define GUI_INCLUDE 0
+#endif
 
 //==============================================================================
 PhaseDelayAudioProcessor::PhaseDelayAudioProcessor()
@@ -147,13 +150,21 @@ void PhaseDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 }
 
 bool PhaseDelayAudioProcessor::hasEditor() const
-{
+{   
+#if GUI_INCLUDE
+    return true;
+#else
     return false;
+#endif
 }
 
 juce::AudioProcessorEditor* PhaseDelayAudioProcessor::createEditor()
 {
+#if GUI_INCLUDE
+    return new juce::GenericAudioProcessorEditor(*this);
+#else
     return nullptr;
+#endif
 }
 
 //==============================================================================
